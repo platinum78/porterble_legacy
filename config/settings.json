@@ -1,0 +1,23 @@
+{
+    "powertrain": {
+
+    },
+
+    "lightings": {
+        "front_light_pin"           : 0,
+        "rear_light_pin"            : 0,
+        "left_light_pin"            : 0,
+        "right_light_pin"           : 0,
+        "left_indicator_pin"        : 0,
+        "right_indicator_pin"       : 0,
+        "indicator_blink_interval"  : 0.35
+    },
+
+    "kinematics": {
+
+    },
+
+    "path_generator": {
+
+    }
+}
