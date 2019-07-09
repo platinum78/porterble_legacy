@@ -1,6 +1,40 @@
 {
-    "powertrain": {
+    "base_settings": {
+        "units": {
+            "length"                    : "meters",
+            "time"                      : "seconds",
+            "mass"                      : "kilograms"
+        },
 
+        "wheel_types": [ "FIXED", "OMNI", "MECANUM", "CASTER" ]
+    },
+
+    "powertrain": {
+        "wheel_info": {
+            "wheel_1": {
+                "type"      : "FIXED",
+                "origin"    : [ 0.5, 0.5 ],
+                "rev_axis"  : 0
+            },
+
+            "wheel_2": {
+                "type"      : "FIXED",
+                "origin"    : [ 0.5, 0.5 ],
+                "rev_axis"  : 0
+            },
+
+            "wheel_3": {
+                "type"      : "CASTER",
+                "origin"    : [ 0.5, 0.5 ],
+                "rev_axis"  : 0
+            },
+
+            "wheel_4": {
+                "type"      : "CASTER",
+                "origin"    : [ 0.5, 0.5 ],
+                "rev_axis"  : 0
+            }
+        }
     },
 
     "lightings": {
@@ -14,10 +48,12 @@
     },
 
     "kinematics": {
-
+        "solver_precision": 1e-4,
+        "solver_max_trial": 10
     },
 
     "path_generator": {
-
+        "min_path_radius": 0.5,
+        "side_slippable": true
     }
 }

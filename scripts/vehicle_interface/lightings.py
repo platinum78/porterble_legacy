@@ -46,7 +46,59 @@ class Lightings:
         self.right_indicator_trigger = threading.Event()
     
     def grab_pins(self):
-        pass
+        # Set RPi GPIO to BCM mode.
+        gpio.setmode(gpio.BCM)
+        
+        # Set output pins.
+        gpio.setup(self.front_light_pin, gpio.OUT)
+        gpio.setup(self.rear_light_pin, gpio.OUT)
+        gpio.setup(self.left_indicator_pin, gpio.OUT)
+        gpio.setup(self.right_indicator_pin, gpio.OUT)
     
-    def start_controller(self):
-        pass
+    def front_light_handler(self, e):
+        while True:
+            e.wait()
+            # Code for toggling front light.
+            e.clear()
+    
+    def rear_light_handler(self, e):
+        while True:
+            e.wait()
+            # Code for toggling rear light.
+            e.clear()
+    
+    def left_indicator_handler(self, e):
+        while True:
+            e.wait()
+            # Code for toggling left indicator
+            time.sleep(self.indicator_blink_interval)
+    
+    def right_indicator_handler(self, e):
+        while True:
+            e.wait()
+            # Code for toggling right indicator.
+            time.sleep(self.indicator_blink_interval)
+    
+    def start_controller(self, e):
+        # Create event objects for triggering events.
+        self.front_light_event = threading.Event()
+        self.rear_light_event = threading.Event()
+        self.left_indicator_event = threading.Event()
+        self.right_indicator_event = threading.Event()
+
+        # Create thread objects for each handler.
+        self.front_light_thread = threading.Thread(target=self.front_light_handler, daemon=True, args=(self.front_light_event,))
+        self.rear_light_thread = threading.Thread(target=self.rear_light_handler, daemon=True, args=(self.rear_light_event,))
+        self.left_indicator_thread = threading.Thread(target=self.left_indicator_handler, daemon=True, args=(self.left_indicator_event,))
+        self.right_indicator_thread = threading.Thread(target=self.right_indicator_handler, daemon=True, args=(self.right_indicator_event,))
+
+        # Start each thread.
+        self.front_light_thread.start()
+        self.rear_light_thread.start()
+        self.left_indicator_thread.start()
+        self.right_indicator_thread.start()
+
+        while True:
+            e.wait()
+            # Code for controlling lightings controller.
+            e.clear()
