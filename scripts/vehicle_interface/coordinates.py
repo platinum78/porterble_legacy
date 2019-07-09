@@ -1,7 +1,7 @@
 import numpy as np
 
 class Coordinate:
-    def __init__(self, ref_coord, rotation, ref_global_rotation=None, is_static=False, is_global=False):
+    def __init__(self, ref_frame, offset, rotation):
         """
         * Reference is an coordinate object.
         * Rotation should be given in radians.

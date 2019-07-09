@@ -10,11 +10,23 @@
 """
 
 import os, sys, time, json, threading
-from coordinates import *
-from datatypes import *
-from kinematic_controller import *
-from lightings import *
-from path_generator import *
+
+if __name__ == "__main__":
+    from coordinates import *
+    from datatypes import *
+    from kinematic_controller import *
+    from lightings import *
+    from path_generator import *
+    from utils.logging import *
+    from utils.serial_handler import SerialHandler
+else:
+    from .coordinates import *
+    from .datatypes import *
+    from .kinematic_controller import *
+    from .lightings import *
+    from .path_generator import *
+    from .utils.logging import *
+    from .utils.serial_handler import SerialHandler
 
 class VehicleInterface:
     def __init__(self, config_json_path):
@@ -27,14 +39,8 @@ class VehicleInterface:
         self.lightings = Lightings(self.json_data["lightings"])
         self.path_generator = PathGenerator(self.json_data["path_generator"])
     
-    def start_operation(self):
+    def start_operation(self, terminate_event):
         """
         Spawn controller threads and begin operation of vehicle.
-        """
-        pass
-    
-    def stop_operation(self):
-        """
-        Kill all sub-threads and stop operation of vehicle.
         """
         pass
