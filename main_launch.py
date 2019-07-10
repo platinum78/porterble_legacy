@@ -13,7 +13,10 @@ import os, sys, json
 import threading
 import numpy as np
 
-from scripts.vehicle_interface.vehicle_interface import VehicleInterface
+if __name__ == "__main__":
+    from scripts.vehicle_interface.vehicle_interface import VehicleInterface
+else:
+    from .scripts.vehicle_interface.vehicle_interface import VehicleInterface
 
 def main():
     try:

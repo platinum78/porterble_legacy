@@ -15,32 +15,37 @@ import os, sys, time
 from ..utils.logging import *
 import RPi.GPIO as gpio
 
-class SwitchEvent(threading.Event):
+class InterruptEvent(threading.Event):
     def __init__(self):
         super().__init__()
-        self.state = False
+
+        self.switch_state = False
+        self.terminate = False
     
-    def on(self):
+    def swtich_on(self):
         """
         Replicate the original threading.Event.set() method,
         just add single command to set self.state to True.
         """
-        self.state = True
-
-        with self._cond:
-            self._flag = True
-            self._cond.notify_all()
+        self.switch_state = True
+        self.set()
     
-    def off(self):
+    def switch_off(self):
         """
         Replicate the original threading.Event.set() method,
         just add single command to set self.state to False.
         """
-        self.state = False
-
-        with self._cond:
-            self._flag = True
-            self._cond.notify_all()
+        self.switch_state = False
+        self.set()
+    
+    def terminate(self):
+        """
+        Replicate the original threading.Event.set() method,
+        just add single command to set self.state to False.
+        """
+        self.terminate = True
+        self.set()
+        
 
 class Lightings:
     LIGHT_FRONT = 1
@@ -55,12 +60,12 @@ class Lightings:
         self.ser = serial_handler
 
         # Get pins information from configuration dict.
-        self.front_light_pin = config_dict["front_light_pin"]
-        self.rear_light_pin = config_dict["rear_light_pin"]
-        self.left_light_pin = config_dict["left_light_pin"]
-        self.right_light_pin = config_dict["right_light_pin"]
-        self.left_indicator_pin = config_dict["left_indicator_pin"]
-        self.right_indicator_pin = config_dict["right_indicator_pin"]
+        self.front_light = config_dict["front_light"]
+        self.rear_light = config_dict["rear_light"]
+        self.left_light = config_dict["left_light"]
+        self.right_light = config_dict["right_light"]
+        self.left_indicator = config_dict["left_indicator"]
+        self.right_indicator = config_dict["right_indicator"]
 
         # Get operation parameters from configuration dict.
         self.indicator_blink_interval = config_dict["indicator_blink_interval"]
@@ -70,10 +75,10 @@ class Lightings:
         gpio.setmode(gpio.BCM)
         
         # Set output pins.
-        gpio.setup(self.front_light_pin, gpio.OUT)
-        gpio.setup(self.rear_light_pin, gpio.OUT)
-        gpio.setup(self.left_indicator_pin, gpio.OUT)
-        gpio.setup(self.right_indicator_pin, gpio.OUT)
+        gpio.setup(self.front_light["pin"], gpio.OUT)
+        gpio.setup(self.rear_light["pin"], gpio.OUT)
+        gpio.setup(self.left_indicator["pin"], gpio.OUT)
+        gpio.setup(self.right_indicator["pin"], gpio.OUT)
     
     def front_light_handler(self, e, sigterm):
         while True:
@@ -101,16 +106,10 @@ class Lightings:
     
     def start_controller(self, e, sigterm):
         # Create event objects for triggering events.
-        self.front_light_event = SwitchEvent()
-        self.rear_light_event = SwitchEvent()
-        self.left_indicator_event = SwitchEvent()
-        self.right_indicator_event = SwitchEvent()
-
-        # Create event objects for sigterm.
-        self.front_light_sigterm = threading.Event()
-        self.rear_light_sigterm = threading.Event()
-        self.left_indicator_sigterm = threading.Event()
-        self.right_indicator_sigterm = threading.Event()
+        self.front_light_event = InterruptEvent()
+        self.rear_light_event = InterruptEvent()
+        self.left_indicator_event = InterruptEvent()
+        self.right_indicator_event = InterruptEvent()
 
         # Create thread objects for each handler.
         self.front_light_thread = threading.Thread(target=self.front_light_handler, daemon=True, args=(self.front_light_event, self.front_light_sigterm))

@@ -16,9 +16,9 @@ class Coordinate:
         if ref_global_rotation == None:
             self.rotation_ = self.
     
-    def generate_rotated_coordinate(self, angle):
+    def generate_derived_coordinate(self, angle, offset):
         """
         Computes coordinate rotation, and returns new coordinate object.
         """
-        coordinate = Coordinate(self, angle, is_static=False, is_global=False)
+        coordinate = Coordinate(self, angle)
         return coordinate
