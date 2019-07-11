@@ -15,30 +15,22 @@ import os, sys, time
 from ..utils.logging import *
 import RPi.GPIO as gpio
 
-class InterruptEvent(threading.Event):
+class SwitchEvent(threading.Event):
     def __init__(self):
         super().__init__()
 
         self.switch_state = False
         self.terminate = False
     
-    def swtich_on(self):
+    def set_swtich(self, switch_state):
         """
         Replicate the original threading.Event.set() method,
         just add single command to set self.state to True.
         """
-        self.switch_state = True
+        self.switch_state = switch_state
         self.set()
     
-    def switch_off(self):
-        """
-        Replicate the original threading.Event.set() method,
-        just add single command to set self.state to False.
-        """
-        self.switch_state = False
-        self.set()
-    
-    def terminate(self):
+    def trigger_sigterm(self):
         """
         Replicate the original threading.Event.set() method,
         just add single command to set self.state to False.
@@ -80,36 +72,58 @@ class Lightings:
         gpio.setup(self.left_indicator["pin"], gpio.OUT)
         gpio.setup(self.right_indicator["pin"], gpio.OUT)
     
-    def front_light_handler(self, e, sigterm):
+    def front_light_handler(self, e):
         while True:
             e.wait()
-            # Code for toggling front light.
-            e.clear()
+            if not e.terminate:
+                if e.switch_state:
+                    gpio.set(self.front_light["pin"], gpio.HIGH)
+                else:
+                    gpio.set(self.front_light["pin"], gpio.LOW)
+                e.clear()
+            else:
+                return None
     
     def rear_light_handler(self, e, sigterm):
         while True:
             e.wait()
-            # Code for toggling rear light.
-            e.clear()
+            if not e.sigterm:
+                if e.switch_state:
+                    gpio.set(self.front_light["pin"], gpio.HIGH)
+                else:
+                    gpio.set(self.front_light["pin"], gpio.LOW)
+                e.clear()
+            else:
+                return
     
-    def left_indicator_handler(self, e, sigterm):
+    def left_indicator_handler(self, e):
         while True:
             e.wait()
-            # Code for toggling left indicator
-            time.sleep(self.indicator_blink_interval)
+            if not e.terminate:
+                gpio.set(self.left_indicator["pin"], gpio.HIGH)
+                time.sleep(self.indicator_blink_interval)
+                gpio.set(self.left_indicator["pin"], gpio.LOW)
+                time.sleep(self.indicator_blink_interval)
+            else:
+                return
     
     def right_indicator_handler(self, e, sigterm):
         while True:
             e.wait()
-            # Code for toggling right indicator.
-            time.sleep(self.indicator_blink_interval)
+            if not e.terminate:
+                gpio.set(self.right_indicator["pin"], gpio.HIGH)
+                time.sleep(self.indicator_blink_interval)
+                gpio.set(self.right_indicator["pin"], gpio.LOW)
+                time.sleep(self.indicator_blink_interval)
+            else:
+                return
     
-    def start_controller(self, e, sigterm):
+    def start_controller(self, e):
         # Create event objects for triggering events.
-        self.front_light_event = InterruptEvent()
-        self.rear_light_event = InterruptEvent()
-        self.left_indicator_event = InterruptEvent()
-        self.right_indicator_event = InterruptEvent()
+        self.front_light_event = SwitchEvent()
+        self.rear_light_event = SwitchEvent()
+        self.left_indicator_event = SwitchEvent()
+        self.right_indicator_event = SwitchEvent()
 
         # Create thread objects for each handler.
         self.front_light_thread = threading.Thread(target=self.front_light_handler, daemon=True, args=(self.front_light_event, self.front_light_sigterm))
@@ -124,9 +138,9 @@ class Lightings:
         self.right_indicator_thread.start()
 
         # Loop until received SIGTERM.
-        while not sigterm.is_set():
+        while True:
             e.wait()
-            # Code for controlling lightings controller.
+            if not e.terminate:
             e.clear()
         
         # Trigger SIGTERM of each thread.

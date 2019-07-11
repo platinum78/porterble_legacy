@@ -12,42 +12,54 @@
     "powertrain": {
         "wheel_info": {
             "wheel_1": {
-                "type"      : "FIXED",
-                "origin"    : [ 0.5, 0.5 ],
-                "rev_axis"  : 0
+                "type"                  : "FIXED",
+                "origin"                : [ 0.5, 0.5 ],
+                "radius"                : 0.05,
+                "wheel_orientation"     : 0,
+                "roller_orientation"    : 0,
+                "rev_axis"              : 0
             },
 
             "wheel_2": {
-                "type"      : "FIXED",
-                "origin"    : [ 0.5, 0.5 ],
-                "rev_axis"  : 0
+                "type"                  : "FIXED",
+                "origin"                : [ 0.5, 0.5 ],
+                "radius"                : 0.05,
+                "wheel_orientation"     : 0,
+                "roller_orientation"    : 0,
+                "rev_axis"              : 0
             },
 
             "wheel_3": {
-                "type"      : "CASTER",
-                "origin"    : [ 0.5, 0.5 ],
-                "rev_axis"  : 0
+                "type"                  : "FIXED",
+                "origin"                : [ 0.5, 0.5 ],
+                "radius"                : 0.05,
+                "wheel_orientation"     : 0,
+                "roller_orientation"    : 0,
+                "rev_axis"              : 0
             },
 
             "wheel_4": {
-                "type"      : "CASTER",
-                "origin"    : [ 0.5, 0.5 ],
-                "rev_axis"  : 0
+                "type"                  : "FIXED",
+                "origin"                : [ 0.5, 0.5 ],
+                "radius"                : 0.05,
+                "wheel_orientation"     : 0,
+                "roller_orientation"    : 0,
+                "rev_axis"              : 0
             }
         }
     },
 
     "lightings": {
-        "front_light"           : { "pin": 0,   "code": 0 },
-        "rear_light"            : { "pin": 0,   "code": 0 },
-        "left_indicator"        : { "pin": 0,   "code": 0 },
-        "right_indicator"       : { "pin": 0,   "code": 0 },
+        "front_light"           : { "pin": 0,   "dev_id": 0 },
+        "rear_light"            : { "pin": 0,   "dev_id": 0 },
+        "left_indicator"        : { "pin": 0,   "dev_id": 0 },
+        "right_indicator"       : { "pin": 0,   "dev_id": 0 },
         "indicator_blink_interval"  : 0.35
     },
 
     "kinematics": {
         "solver_precision": 1e-4,
-        "solver_max_trial": 10
+        "solver_max_trial": 10,
     },
 
     "path_generator": {
