@@ -9,11 +9,11 @@
 ********************************************************************************
 """
 
+import os, sys, time
 import numpy as np
 import threading
-import os, sys, time
-from ..utils.logging import *
-import RPi.GPIO as gpio
+from scripts.utils.logging import *
+from scripts.utils.gpio_handler import GPIOHandler
 
 class SwitchEvent(threading.Event):
     def __init__(self):
@@ -73,6 +73,7 @@ class Lightings:
         gpio.setup(self.right_indicator["pin"], gpio.OUT)
     
     def front_light_handler(self, e):
+        print_info("Front light handler thread started.")
         while True:
             e.wait()
             if not e.terminate:
@@ -85,6 +86,7 @@ class Lightings:
                 return None
     
     def rear_light_handler(self, e, sigterm):
+        print_info("Rear light handler thread started.")
         while True:
             e.wait()
             if not e.sigterm:
@@ -97,6 +99,7 @@ class Lightings:
                 return
     
     def left_indicator_handler(self, e):
+        print_info("Left indicator handler thread started.")
         while True:
             e.wait()
             if not e.terminate:
@@ -108,6 +111,7 @@ class Lightings:
                 return
     
     def right_indicator_handler(self, e, sigterm):
+        print_info("Right indicator handler thread started.")
         while True:
             e.wait()
             if not e.terminate:
@@ -119,6 +123,7 @@ class Lightings:
                 return
     
     def start_controller(self, e):
+        print_info("Lightings controller started.")
         # Create event objects for triggering events.
         self.front_light_event = SwitchEvent()
         self.rear_light_event = SwitchEvent()
@@ -141,7 +146,7 @@ class Lightings:
         while True:
             e.wait()
             if not e.terminate:
-            e.clear()
+                e.clear()
         
         # Trigger SIGTERM of each thread.
         if sigterm.is_set():

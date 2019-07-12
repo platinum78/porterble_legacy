@@ -12,15 +12,14 @@
 import os, sys, json
 import threading
 import numpy as np
-
-if __name__ == "__main__":
-    from scripts.vehicle_interface.vehicle_interface import VehicleInterface
-else:
-    from .scripts.vehicle_interface.vehicle_interface import VehicleInterface
+from scripts.vehicle_interface.vehicle_interface import VehicleInterface
 
 def main():
     try:
-        interface = VehicleInterface("../config/settings.json")
+        interface = VehicleInterface("config/settings.json")
         interface.start_operation()
     except KeyboardInterrupt:
         interface.stop_operation()
+
+if __name__ == "__main__":
+    main()

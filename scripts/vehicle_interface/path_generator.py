@@ -11,7 +11,7 @@
 
 import threading
 import numpy as np
-from datatypes import State2D
+from .datatypes import State2D
 
 
 class PathGenerator:

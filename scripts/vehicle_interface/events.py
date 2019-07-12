@@ -1,3 +1,14 @@
+#!/usr/bin/python3
+
+"""
+********************************************************************************
+* Filename      : Event Objects
+* Author        : Susung Park
+* Description   : Custom event objects for specific uses.
+* Version       : Initial release; 07 Jul 2019
+********************************************************************************
+"""
+
 import threading
 
 class SwitchEvent(threading.Event):

@@ -25,8 +25,8 @@ else:
     from .kinematic_controller import *
     from .lightings import *
     from .path_generator import *
-    from .utils.logging import *
-    from .utils.serial_handler import SerialHandler
+    from ..utils.logging import *
+    from ..utils.serial_handler import SerialHandler
 
 class VehicleInterface:
     def __init__(self, config_json_path):

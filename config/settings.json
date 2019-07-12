@@ -59,11 +59,20 @@
 
     "kinematics": {
         "solver_precision": 1e-4,
-        "solver_max_trial": 10,
+        "solver_max_trial": 10
     },
 
     "path_generator": {
         "min_path_radius": 0.5,
         "side_slippable": true
+    },
+
+    "RPi-GPIO": {
+        "operating_mode"        : "BCM",
+        "pin_mode": {
+            "1"     : "OUTPUT",
+            "2"     : "INPUT",
+            "3"     : "OUTPUT"
+        }
     }
 }

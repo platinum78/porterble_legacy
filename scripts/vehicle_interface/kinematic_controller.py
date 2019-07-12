@@ -33,8 +33,10 @@ class QuadMecanumKinematics:
         self.wheel_4 = MecanumWheel(wheel_info_dict["wheel_4"])
 
         # Create matrices A and B and set coefficients.
-        self.mat_A = np.zeros(4, 4)
-        self.mat_B = np.ones(4, 3)
+        self.mat_A = np.zeros([4, 4])
+        self.mat_B = np.ones([4, 3])
+        self.W = np.zeros([4, 1])
+        self.V = np.zeros([3, 1])
 
         self.mat_A[0, 0] = self.A_func(self.wheel_1)
         self.mat_A[1, 1] = self.A_func(self.wheel_2)
@@ -50,9 +52,15 @@ class QuadMecanumKinematics:
         self.mat_B[1, 2] = self.C_func(self.wheel_2)
         self.mat_B[2, 2] = self.C_func(self.wheel_3)
         self.mat_B[3, 2] = self.C_func(self.wheel_4)
+
+        # Pre-compute inv(A) * B, to save computing resource.
+        self.AiB = np.matmul(np.linalg.inv(self.mat_A), self.mat_B)
     
     def compute_wheel_velocity(self, v_x, v_y, w):
-        
+        self.V[:, 0] = [v_x, v_y, w]
+        self.W = np.matmul(self.AiB)
+        w_1, w_2, w_3, w_4 = self.W[:, 0]
+        return w_1, w_2, w_3, w_4
     
     def A_func(self, wheel):
         return R * (np.sin(wheel.alpha + wheel.beta) \
@@ -64,9 +72,6 @@ class QuadMecanumKinematics:
     
     def C_func(self, wheel):
         return np.tan(whee.alpha + wheel.beta - wheel.gamma) * wheel.L_x - wheel.L_y
-    
-def QuadMecanumKinematics_(wheel_info_dict, v_x, v_y, w):
-    pass
 
 
 class KinematicController:
