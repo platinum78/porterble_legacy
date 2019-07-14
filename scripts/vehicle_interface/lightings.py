@@ -12,31 +12,9 @@
 import os, sys, time
 import numpy as np
 import threading
-from scripts.utils.logging import *
-from scripts.utils.gpio_handler import GPIOHandler
-
-class SwitchEvent(threading.Event):
-    def __init__(self):
-        super().__init__()
-
-        self.switch_state = False
-        self.terminate = False
-    
-    def set_swtich(self, switch_state):
-        """
-        Replicate the original threading.Event.set() method,
-        just add single command to set self.state to True.
-        """
-        self.switch_state = switch_state
-        self.set()
-    
-    def trigger_sigterm(self):
-        """
-        Replicate the original threading.Event.set() method,
-        just add single command to set self.state to False.
-        """
-        self.terminate = True
-        self.set()
+from ..utils.logging import *
+from ..utils.gpio_handler import GPIOHandler
+from .events import SwitchEvent
         
 
 class Lightings:
@@ -47,20 +25,20 @@ class Lightings:
     TURN_INDICATOR_LEFT = 5
     TURN_INDICATOR_RIGHT = 6
 
-    def __init__(self, config_dict, serial_handler):
-        # Get serial handler object.
-        self.ser = serial_handler
+    def __init__(self, config_dict, debug=False):
+        self.debug = debug
 
         # Get pins information from configuration dict.
         self.front_light = config_dict["front_light"]
         self.rear_light = config_dict["rear_light"]
-        self.left_light = config_dict["left_light"]
-        self.right_light = config_dict["right_light"]
         self.left_indicator = config_dict["left_indicator"]
         self.right_indicator = config_dict["right_indicator"]
 
         # Get operation parameters from configuration dict.
         self.indicator_blink_interval = config_dict["indicator_blink_interval"]
+        
+        # Print information message.
+        print_info("Lightings controller object created at " + str(id(self)) + ".")
     
     def grab_pins(self, simulation=False):
         # Set RPi GPIO to BCM mode.
@@ -71,6 +49,9 @@ class Lightings:
         gpio.setup(self.rear_light["pin"], gpio.OUT)
         gpio.setup(self.left_indicator["pin"], gpio.OUT)
         gpio.setup(self.right_indicator["pin"], gpio.OUT)
+        
+        # Print information message.
+        print_info("GPIO pins initialized.")
     
     def front_light_handler(self, e):
         print_info("Front light handler thread started.")
@@ -79,24 +60,31 @@ class Lightings:
             if not e.terminate:
                 if e.switch_state:
                     gpio.set(self.front_light["pin"], gpio.HIGH)
+                    if self.debug: print_info("Front light turned on.")
                 else:
                     gpio.set(self.front_light["pin"], gpio.LOW)
+                    if self.debug: print_info("Front light turned off.")
                 e.clear()
             else:
                 return None
     
-    def rear_light_handler(self, e, sigterm):
+    def rear_light_handler(self, e):
         print_info("Rear light handler thread started.")
-        while True:
-            e.wait()
-            if not e.sigterm:
-                if e.switch_state:
-                    gpio.set(self.front_light["pin"], gpio.HIGH)
+        try:
+            while True:
+                e.wait()
+                if not e.terminate:
+                    if e.switch_state:
+                        gpio.set(self.front_light["pin"], gpio.HIGH)
+                        if self.debug: print_info("Rear light turned on.")
+                    else:
+                        gpio.set(self.front_light["pin"], gpio.LOW)
+                        if self.debug: print_info("Rear light turned off.")
+                    e.clear()
                 else:
-                    gpio.set(self.front_light["pin"], gpio.LOW)
-                e.clear()
-            else:
-                return
+                    return
+        except Exception as e:
+            print("Error: ", e)
     
     def left_indicator_handler(self, e):
         print_info("Left indicator handler thread started.")
@@ -110,7 +98,7 @@ class Lightings:
             else:
                 return
     
-    def right_indicator_handler(self, e, sigterm):
+    def right_indicator_handler(self, e):
         print_info("Right indicator handler thread started.")
         while True:
             e.wait()
@@ -131,10 +119,10 @@ class Lightings:
         self.right_indicator_event = SwitchEvent()
 
         # Create thread objects for each handler.
-        self.front_light_thread = threading.Thread(target=self.front_light_handler, daemon=True, args=(self.front_light_event, self.front_light_sigterm))
-        self.rear_light_thread = threading.Thread(target=self.rear_light_handler, daemon=True, args=(self.rear_light_event, self.rear_light_sigterm))
-        self.left_indicator_thread = threading.Thread(target=self.left_indicator_handler, daemon=True, args=(self.left_indicator_event, self.left_indicator_sigterm))
-        self.right_indicator_thread = threading.Thread(target=self.right_indicator_handler, daemon=True, args=(self.right_indicator_event, self.right_indicator_sigterm))
+        self.front_light_thread = threading.Thread(name="front_light_thread", target=self.front_light_handler, daemon=True, args=(self.front_light_event,))
+        self.rear_light_thread = threading.Thread(name="rear_light_thread", target=self.rear_light_handler, daemon=True, args=(self.rear_light_event,))
+        self.left_indicator_thread = threading.Thread(name="left_indicator_thread", target=self.left_indicator_handler, daemon=True, args=(self.left_indicator_event,))
+        self.right_indicator_thread = threading.Thread(name="right_indicator_thread", target=self.right_indicator_handler, daemon=True, args=(self.right_indicator_event,))
 
         # Start each thread.
         self.front_light_thread.start()
@@ -149,16 +137,18 @@ class Lightings:
                 e.clear()
         
         # Trigger SIGTERM of each thread.
-        if sigterm.is_set():
-            self.front_light_sigterm.set()
-            self.rear_light_sigterm.set()
-            self.left_indicator_sigterm.set()
-            self.right_indicator_sigterm.set()
+        if e.terminate:
+            self.front_light_event.sigterm()
+            self.rear_light_event.sigterm()
+            self.left_indicator_event.sigterm()
+            self.right_indicator_event.sigterm()
         
         # Wait until every thread is dead.
         while True:
             active_threads = threading.active_count()
             if active_threads > 0:
-                print_info("%d threads still alive. Retry in 1 sec..." % active_threads)
+                print_warn("%d threads still alive. Retry in 1 sec..." % active_threads)
             else:
                 break
+        
+        print_info("All lightings subthreads are terminated.")

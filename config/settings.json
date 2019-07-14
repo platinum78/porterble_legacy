@@ -64,7 +64,8 @@
 
     "path_generator": {
         "min_path_radius": 0.5,
-        "side_slippable": true
+        "side_slippable": true,
+        "docking_back_offset": 0.5
     },
 
     "RPi-GPIO": {
@@ -73,6 +74,18 @@
             "1"     : "OUTPUT",
             "2"     : "INPUT",
             "3"     : "OUTPUT"
+        }
+    },
+
+    "serial": {
+        "arduino_mega": {
+            "port_name": "/dev/ttyACM0",
+            "baudrate": 9600
+        },
+
+        "arduino_uno": {
+            "port_name": "/dev/ttyACM1",
+            "baudrate": 9600
         }
     }
 }

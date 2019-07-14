@@ -10,16 +10,30 @@
 """
 
 from serial import Serial
+from serial.serialutil import SerialException
+from ..utils.logging import *
 from logging import *
 
 class SerialHandler:
-    def __init__(self, config_dict, msg_queue):
-        serial_portname = config_dict["serial_portname"]
+    def __init__(self, config_dict, debug=False, simulation=False):
+        self.debug = False
+        self.simulation = False
+
+        serial_portname = config_dict["port_name"]
         baudrate = config_dict["baudrate"]
-        self.ser = Serial(serial_portname, baudrate=baudrate)
-        self.ser.close()
-        self.ser.open()
-        print_info("Serial communication initiated.")
+
+        # Try to open serial port; 
+        try:
+            self.ser = Serial(serial_portname, baudrate=baudrate)
+            self.ser.close()
+            self.ser.open()
+            print_info("Opened serial port \"" + serial_portname + "\".")
+        except SerialException:
+            self.simulation = True
+            print_err("Failed to open serial port \"" + serial_portname + "\". Operating in simulation mode.")
+        
+        if self.debug: print_info("Serial handler object created at" + str(id(self)) + ".")
+
     
     def readline(self, timeout=None):
         msg = ""
@@ -27,10 +41,12 @@ class SerialHandler:
         while char_buf != '\n':
             msg += char_buf
             char_buf = self.serial.read(timeout=timeout).decode()
+        if self.debug: print_info("SERIAL INBOUND: " + msg)
         return msg
     
     def writeline(self, msg, ends_with='\n'):
         if type(msg) != str:
+            print_err("Message should be given in str-type.")
             raise TypeError("Message should be given in string-type.")
         
         if msg[-1] != ends_with:
@@ -38,3 +54,4 @@ class SerialHandler:
         
         msg_bytes = msg.encode()
         self.ser.write(msg_bytes)
+        if self.debug: print_info("SERIAL OUTBOUND: " + msg)

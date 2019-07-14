@@ -9,8 +9,9 @@
 ********************************************************************************
 """
 
-import threading
+import time, threading
 import numpy as np
+from .geometry_datatypes import Pose2D
 
 class MecanumWheel:
     def __init__(self, wheel_info_dict):
@@ -74,22 +75,40 @@ class QuadMecanumKinematics:
         return np.tan(whee.alpha + wheel.beta - wheel.gamma) * wheel.L_x - wheel.L_y
 
 
-class KinematicController:
-    def __init__(self):
+class KinematicControllerPID:
+    def __init__(self, kp, ki, kd):
         """
         Kinematic controller deals only with kinematic constraints.
         This controller acts as if the system is immediately responsive.
         This implementation is in the purpose to isolate kinetic constraints from kinematics,
         in order to make it relatively easy to change the physical composition of the robot.
         """
+        # Get PID gains.
+        self.kp = kp
+        self.ki = ki
+        self.kd = kd
+
         # Kinematic state variables.
-        self.velocity = Var2D(0, 0, 0)
-        self.velocity_ = Var2D(0, 0, 0)
-        self.pose = Var2D(0, 0, 0)
-        self.pose_ = Var2D(0, 0, 0)
+        self.pose_curr = Pose2D(0, 0, 0)
+        self.pose_prev = Pose2D(0, 0, 0)
+        self.pose_diff = Pose2D(0, 0, 0)
+        self.velocity_curr = Pose2D(0, 0, 0)
+        self.velocity_prev = Pose2D(0, 0, 0)
+        self.velocity_diff = Pose2D(0, 0, 0)
 
         # Kinematic target variables.
-        self.velocity_target = Var2D(0, 0, 0)
-        self.velocity_target_ = Var2D(0, 0, 0)
-        self.pose_target = Var2D(0, 0, 0)
-        self.pose_target_ = Var2D(0, 0, 0)
+        self.pose_target = Pose2D(0, 0, 0)
+        self.velocity_target = Pose2D(0, 0, 0)
+
+        # Timestamps.
+        self.timestamp_curr = 0.0
+        self.timestamp_prev = 0.0
+        self.timestamp_diff = 0.0
+
+        # Error-related variables.
+        self.error_integral = Pose2D(0, 0, 0)
+        self.error_differential = Pose2D(0, 0, 0)
+
+    def pid_controller(self, pose_target=None, velocity_target=None):
+        if pose_target is not None:
+            self.pose_target

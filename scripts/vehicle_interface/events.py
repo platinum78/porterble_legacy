@@ -29,12 +29,12 @@ class SwitchEvent(threading.Event):
         self.switch_state = False
         self.set()
     
-    def trigger_sigterm(self):
+    def sigterm(self):
         self.terminate = True
         self.set()
 
 
-class LightingEvent(threading.Event):
+class DeviceEvent(threading.Event):
     def __init__(self):
         super().__init__()
         self.dev_id = 0
