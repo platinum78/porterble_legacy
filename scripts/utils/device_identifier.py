@@ -1,5 +1,14 @@
 #!/usr/bin/python3
 
+"""
+********************************************************************************
+* Filename      : Device Identifier
+* Author        : Susung Park
+* Description   : Device identifier for identification of multiple Arduinos.
+* Version       : Initial release; 18 Jul 2019
+********************************************************************************
+"""
+
 import os, sys
 
 def identify_arduinos(keyword):
