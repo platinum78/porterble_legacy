@@ -21,7 +21,7 @@ import os, sys, time, json, threading
 #     from utils.serial_handler import SerialHandler
 # else:
 from .coordinates import *
-from .datatypes import *
+from .geometry_datatypes import *
 from .kinematic_controller import *
 from .lightings import *
 from .path_generator import *

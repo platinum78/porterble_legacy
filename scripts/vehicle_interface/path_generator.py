@@ -18,12 +18,8 @@ def cubic_parametrize(b, c):
     mat = np.ones([2, 2])
     mat[0, 0] = b**3 / 3 - (b + c) * b**2 / 2 + b**2 * c
     mat[1, 0] = c**3 / 3 - (b + c) * c**2 / 2 + b * c**2
-    print(mat)
     vec = np.array([[b], [c]])
-    print(vec)
-    print(np.linalg.inv(mat))
     res = np.matmul(np.linalg.inv(mat), vec)
-    print(res)
     a = res[0, 0]
     k = res[1, 0]
     
@@ -39,12 +35,6 @@ class PathGenerator:
         self.side_slippable = config_dict["side_slippable"]
         print_info("Path generator initialized.")
         pass
-    
-    def generate_path(self, init_pose, final_pose, obstacles):
-        if type(init_pose) != Pose2D:
-            raise TypeError("Initial pose should be given in Pose2D object.")
-        if type(final_pose) != Pose2D:
-            raise TypeError("Final pose should be given in Pose2D object.")
         
     def generate_path(self, grid_map, init_pose, final_pose, path_resolution=0.05):
         """
@@ -52,6 +42,11 @@ class PathGenerator:
         Other sophisticated path generators will refer to this method.
         init_pose and final_pose should be given in Pose2D type, and path resolution is given in meters.
         """
+        if type(init_pose) != Pose2D:
+            raise TypeError("Initial pose should be given in Pose2D object.")
+        if type(final_pose) != Pose2D:
+            raise TypeError("Final pose should be given in Pose2D object.")
+
         pose_diff = final_pose - init_pose
         scalar_dist = np.sqrt(pose_diff.x ** 2 + pose_diff.y ** 2)
         waypoints_num = int(scalar_dist / path_resolution)

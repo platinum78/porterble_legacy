@@ -6,30 +6,33 @@ char inboundSerialBuffer[5];
 char outboundSerialBuffer[3];
 SerialHandler serial(inboundSerialBuffer, outboundSerialBuffer);
 
-const int indicatorBlinkInterval = 400;
+const long indicatorBlinkInterval = 400;
 
-const int leftIndicatorPin = 12;
-const int rightIndicatorPin = 13;
-const int frontLightPin = 10;
-const int rearLightPin = 9;
+const int leftIndicatorPin = 11;
+const int rightIndicatorPin = 12;
+const int frontLightPin = 13;
+const int rearLightPin = 10;
 
-volatile byte leftIndicatorState = LOW;
-volatile byte rightIndicatorState = LOW;
+volatile bool leftIndicatorState = false;
+volatile bool rightIndicatorState = false;
 
 volatile bool timerInterruptAttached = false;
 
+// Timer-attachable funtion for left indicator blinking.
 void leftIndicatorBlink()
 {
     leftIndicatorState = !leftIndicatorState;
     digitalWrite(leftIndicatorPin, leftIndicatorState);
 }
 
+// Timer-attachable funtion for right indicator blinking.
 void rightIndicatorBlink()
 {
     rightIndicatorState = !rightIndicatorState;
     digitalWrite(rightIndicatorPin, rightIndicatorState);
 }
 
+// Timer-attachable funtion for alert indicator blinking.
 void alertBlink()
 {
     leftIndicatorState = !leftIndicatorState;
@@ -38,6 +41,7 @@ void alertBlink()
     digitalWrite(rightIndicatorPin, rightIndicatorState);
 }
 
+// Verify code; only one of left, right, and alert byte should be 1.
 bool verifyCode(byte code)
 {
     byte mask = 0b00001000;
@@ -69,13 +73,17 @@ void setup()
     pinMode(rearLightPin, OUTPUT);
 
     // Start serial communication.
-    Serial.begin(57600);
+    Serial.begin(9600);
 
     // Initialize timer interrupt.
     Timer1.initialize(indicatorBlinkInterval * 1000);
 
     // Indicate the computer that the Arduino is ready.
-    Serial.println(0x01);
+    outboundSerialBuffer[0] = 0x01;
+    outboundSerialBuffer[1] = '\n';
+    outboundSerialBuffer[2] = '\0';
+//    delay(1000);
+    Serial.print(outboundSerialBuffer);
 }
 
 void loop()
@@ -83,48 +91,47 @@ void loop()
     serial.Receive();
     if (serial.IsDataReady())
     {
-        Serial.println(inboundSerialBuffer);
-        if (verifyCode(inboundSerialBuffer[0]))
+        Serial.print(inboundSerialBuffer);
+        if (verifyCode(inboundSerialBuffer[0]) == false)
         {
-//            outboundSerialBuffer[0] = 0x15;
             outboundSerialBuffer[0] = 'a';
             outboundSerialBuffer[1] = '\n';
             outboundSerialBuffer[2] = '\0';
-//            Serial.println(outboundSerialBuffer);
             Serial.println("Invalid");
         }
         else
         {
-            Serial.println("Here!");
             if (timerInterruptAttached)
             {
                 Timer1.detachInterrupt();
                 timerInterruptAttached = false;
+                leftIndicatorState = rightIndicatorState = false;
+                digitalWrite(leftIndicatorPin, leftIndicatorState);
+                digitalWrite(rightIndicatorPin, rightIndicatorState);
             }
             
-            bitMask = 0b00001000;
-            if (inboundSerialBuffer[0] & 0b00001000)
+            if (inboundSerialBuffer[0] & 0b00001000)        // Case: Alert indicator
             {
                 Timer1.attachInterrupt(alertBlink);
                 timerInterruptAttached = true;
             }
-            else if (inboundSerialBuffer[0] & 0b00010000)
+            else if (inboundSerialBuffer[0] & 0b00010000)   // Case: Right indicator
             {
                 Timer1.attachInterrupt(rightIndicatorBlink);
                 timerInterruptAttached = true;
             }
-            else if (inboundSerialBuffer[0] & 0b00100000)
+            else if (inboundSerialBuffer[0] & 0b00100000)   // Case: Left indicator
             {
                 Timer1.attachInterrupt(leftIndicatorBlink);
                 timerInterruptAttached = true;
             }
 
-            if (inboundSerialBuffer[0] & 0b01000000)
+            if (inboundSerialBuffer[0] & 0b01000000)        // Rear lights switch
                 digitalWrite(rearLightPin, HIGH);
             else
                 digitalWrite(rearLightPin, LOW);
     
-            if (inboundSerialBuffer[0] & 0b10000000)
+            if (inboundSerialBuffer[0] & 0b10000000)        // Front lights switch
                 digitalWrite(frontLightPin, HIGH);
             else
                 digitalWrite(frontLightPin, LOW);
@@ -132,11 +139,9 @@ void loop()
             outboundSerialBuffer[0] = 0x06;
             outboundSerialBuffer[1] = '\n';
             outboundSerialBuffer[2] = '\0';
-            Serial.println(outboundSerialBuffer);
+            Serial.print(outboundSerialBuffer);
         }
 
         serial.SetDataState(false);
     }
-
-    serial.DeactivateSerial();
 }
