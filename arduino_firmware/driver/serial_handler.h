@@ -12,7 +12,7 @@ class SerialHandler
     bool IsSerialActive();
     bool IsDataReady();
     void DeactivateSerial();
-    void SetDataState(bool state);
+    void ConsumeData();
 
     private:
     char *inbound_buffer_;
@@ -72,9 +72,9 @@ void SerialHandler::DeactivateSerial()
     serial_active_ = false;
 }
 
-void SerialHandler::SetDataState(bool state)
+void SerialHandler::ConsumeData()
 {
-    data_ready_ = state;
+    data_ready_ = false;
 }
 
 #endif

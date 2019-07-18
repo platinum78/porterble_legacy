@@ -37,10 +37,19 @@ class SerialHandler:
     
     def readline(self, timeout=None):
         msg = ""
-        char_buf = self.serial.read(timeout=timeout).decode()
+        char_buf = self.ser.read().decode()
         while char_buf != '\n':
             msg += char_buf
-            char_buf = self.serial.read(timeout=timeout).decode()
+            char_buf = self.ser.read().decode()
+        if self.debug: print_info("SERIAL INBOUND: " + msg)
+        return msg
+    
+    def readbytes(self, timeout=None):
+        msg = bytes(0)
+        char_buf = self.ser.read()
+        while char_buf != '\n':
+            msg += char_buf
+            char_buf = self.ser.read()
         if self.debug: print_info("SERIAL INBOUND: " + msg)
         return msg
     
@@ -55,3 +64,11 @@ class SerialHandler:
         msg_bytes = msg.encode()
         self.ser.write(msg_bytes)
         if self.debug: print_info("SERIAL OUTBOUND: " + msg)
+    
+    def writebytes(self, msg, ends_with='\n'):
+        if type(msg) != bytes:
+            raise TypeError("Message should be given in bytes-type.")
+        if msg[-1] != ord(ends_with):
+            msg += bytes(ends_with)
+        
+        self.ser.write(msg)

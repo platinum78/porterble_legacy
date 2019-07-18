@@ -17,82 +17,82 @@ template <typename T_src, typename T_out>
 class PIDController
 {
 public:
-    PIDController();
-    PIDController(T_src, T_src, T_src);
-    PIDController(PIDController&);
+    PIDController(T_out, T_out, T_out);
+
+public:
+    void SetTargetVal(T_src val);
+    void SetSysoutVal(T_src val);
 
 public:
     T_out ExecFreePID(T_src&);
     T_out ExecClippedPID(T_src&, T_out, T_out);
 
 private: // PID gains
-    T_src kp_;
-    T_src ki_;
-    T_src kd_;
+    T_out kp_;
+    T_out ki_;
+    T_out kd_;
 
 private: // PID computations
-    T_src err_gross_;
-    T_src err_integral_;
-    T_src err_derivative_;
+    T_out err_curr_;
+    T_out err_prev_;
+    T_out err_gross_;
+    T_out err_integral_;
+    T_out err_derivative_;
 
 private: // State variables
-    T_src target_val_curr_;       // Current encoder value
-    T_src target_val_prev_;       // Previous encoder value
-    T_src target_val_diff_;       // Target value difference between current and previous timestamp
-    int timestamp_curr_;        // Current timestamp
-    int timestamp_prev_;        // Previous timestamp
-    int timestamp_diff_;        // Time step between current and previous timestamp
+    T_src target_val_;
+    T_src sysout_val_;
+    long timestamp_curr_;        // Current timestamp
+    long timestamp_prev_;        // Previous timestamp
+    long timestamp_diff_;        // Time step between current and previous timestamp
 };
 
 template <typename T_src, typename T_out>
-PIDController<T_src, T_out>::PIDController()
-  : err_gross_(0), err_integral_(0), err_derivative_(0),
-    target_val_curr_(0), target_val_prev_(0),
-    timestamp_curr_(0), timestamp_prev_(0), timestamp_diff_(0)
-{
-    
-}
-
-template <typename T_src, typename T_out>
-PIDController<T_src, T_out>::PIDController(T_src kp, T_src ki, T_src kd)
+PIDController<T_src, T_out>::PIDController(T_out kp, T_out ki, T_out kd)
   : kp_(kp), ki_(ki), kd_(kd),
-    err_integral_(0), err_derivative_(0),
-    target_val_curr_(0), target_val_prev_(0),
+    err_curr_(0), err_prev_(0), err_integral_(0), err_derivative_(0),
+    target_val_(0), sysout_val_(0),
     timestamp_curr_(0), timestamp_prev_(0), timestamp_diff_(0)
 {
     
 }
 
 template <typename T_src, typename T_out>
-PIDController<T_src, T_out>::PIDController(PIDController<T_src, T_out>&)
+void PIDController<T_src, T_out>::SetTargetVal(T_src val)
 {
-    
+    target_val_ = val;
 }
 
 template <typename T_src, typename T_out>
-T_out PIDController<T_src, T_out>::ExecFreePID(T_src &target_val)
+void PIDController<T_src, T_out>::SetSysoutVal(T_src val)
+{
+    sysout_val_ = val;
+}
+
+template <typename T_src, typename T_out>
+T_out PIDController<T_src, T_out>::ExecFreePID(T_src &tracking_val)
 {
     // Calculate time difference.
     timestamp_curr_ = micros();
     timestamp_diff_ = timestamp_curr_ - timestamp_prev_;
 
-    // Copy the target value.
-    target_val_curr_ = target_val;
-    target_val_diff_ = target_val_curr_ - target_val_prev_;
+    // Calculate the error.
+    err_curr_ = target_val_ - sysout_val_;
 
     // Calculate each PID variable.
-    err_gross_ += target_val_diff_;
+    err_gross_ += err_curr_;
     err_integral_ = err_gross_ / MICROS;
-    err_derivative_ = target_val_diff_ * MICROS;
+    err_derivative_ = (err_curr_ - err_prev_) * MICROS;
 
-    T_out pidVal = T_out(target_val_diff_ * kp_) + T_out(err_integral_ * ki_) + T_out(err_derivative_ * kd_);
+    T_out pidVal = T_out(err_curr_ * kp_) + T_out(err_integral_ * ki_) + T_out(err_derivative_ * kd_);
+    err_prev_ = err_curr_;
     return pidVal;
 }
 
 template <typename T_src, typename T_out>
-T_out PIDController<T_src, T_out>::ExecClippedPID(T_src &target_val, T_out min_bound, T_out max_bound)
+T_out PIDController<T_src, T_out>::ExecClippedPID(T_src &tracking_val, T_out min_bound, T_out max_bound)
 {
-    T_out pidVal = ExecFreePID(target_val);
+    T_out pidVal = ExecFreePID(tracking_val);
     pidVal = (pidVal > max_bound ? max_bound : (pidVal < min_bound ? min_bound : pidVal));
     return pidVal;
 }

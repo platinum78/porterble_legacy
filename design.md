@@ -53,8 +53,10 @@
 * godfather의 요청에만 응답하는 동기적 통신
 * 조명 점멸 Request: godfather -> helios
   * 조명 장치 코드와 점등/소등 코드 전송 (소등 == 0, 점등 != 0)
-  * 3바이트 ASCII 문자열
-  * (조명 장치 코드: unsigned char) + (소등/점등: unsigned char) + (EOL: \n)
+  * 2바이트 ASCII 문자열
+  * (조명 상태 코드: unsigned char) + (EOL: \n)
+    * 조명 상태는 각 비트의 값으로 표현
+    * 전조등, 후미등, 좌측 방향지시등, 우측 방향지시등, 비상등, 미정 순서대로 Big Endian으로 전송
 * 조명 점멸 Response: helios -> godfather
   * 작동 여부를 전송
   * 2바이트 ASCII 문자열
