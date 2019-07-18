@@ -78,13 +78,18 @@
     },
 
     "serial": {
-        "arduino_mega": {
-            "port_name": "/dev/ttyACM0",
+        "driver": {
+            "serial_number": "55330343434351017072",
             "baudrate": 9600
         },
 
-        "arduino_uno": {
-            "port_name": "/dev/ttyACM1",
+        "torch": {
+            "serial_number": "75735303831351106241",
+            "baudrate": 9600
+        },
+
+        "watchdog": {
+            "serial_number": "7543033343735130F041",
             "baudrate": 9600
         }
     }

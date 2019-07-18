@@ -19,7 +19,7 @@
   * 코드명: driver
   * 모터 및 엔코더 제어
 * Arduino Nano
-  * 코드명: helios
+  * 코드명: torch
   * 조명 시스템
   * Non-blocking 센서 (즉시 응답 가능한 센서)
 
@@ -49,15 +49,15 @@
   * 13바이트 ASCII 문자열
   * (시간 증분: unsigned int) + (엔코더 변화분: signed short) x 4 + (EOL: \n)
 
-#### godfather <-> helios
+#### godfather <-> torch
 * godfather의 요청에만 응답하는 동기적 통신
-* 조명 점멸 Request: godfather -> helios
+* 조명 점멸 Request: godfather -> torch
   * 조명 장치 코드와 점등/소등 코드 전송 (소등 == 0, 점등 != 0)
   * 2바이트 ASCII 문자열
   * (조명 상태 코드: unsigned char) + (EOL: \n)
     * 조명 상태는 각 비트의 값으로 표현
     * 전조등, 후미등, 좌측 방향지시등, 우측 방향지시등, 비상등, 미정 순서대로 Big Endian으로 전송
-* 조명 점멸 Response: helios -> godfather
+* 조명 점멸 Response: torch -> godfather
   * 작동 여부를 전송
   * 2바이트 ASCII 문자열
   * (ACK/NAK: 0x06/0x15) + (EOL: \n)
