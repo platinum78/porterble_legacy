@@ -31,8 +31,13 @@ class Pose2D:
     
     def __div__(self, num):
         if type(num) not in [int, float]:
-            raise TypeError("%s type given, while multiplication only supports scalar argument." % type(num))
+            raise TypeError("%s type given, while division only supports scalar argument." % type(num))
         return Pose2D(self.x / num, self.y / num, self.t / num)
+    
+    def __pow__(self, num):
+        if type(num) not in [int, float]:
+            raise TypeError("%s type given, while power only supports scalar argument." % type(num))
+        return self.x ** 2 + self.y ** 2
     
     def __str__(self):
         return "Pose2D([" + self.x + ", " + self.y + ", " + self.z + "])"

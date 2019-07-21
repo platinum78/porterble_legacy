@@ -6,10 +6,10 @@
             "mass"                      : "kilograms"
         },
 
-        "wheel_types": [ "FIXED", "OMNI", "MECANUM", "CASTER" ]
+        "wheel_types"                   : [ "FIXED", "OMNI", "MECANUM", "CASTER" ]
     },
 
-    "powertrain": {
+    "driver": {
         "wheel_info": {
             "wheel_1": {
                 "type"                  : "FIXED",
@@ -17,7 +17,8 @@
                 "radius"                : 0.05,
                 "wheel_orientation"     : 0,
                 "roller_orientation"    : 0,
-                "rev_axis"              : 0
+                "rev_axis"              : 0,
+                "encoder_ppr"           : 1024
             },
 
             "wheel_2": {
@@ -26,7 +27,8 @@
                 "radius"                : 0.05,
                 "wheel_orientation"     : 0,
                 "roller_orientation"    : 0,
-                "rev_axis"              : 0
+                "rev_axis"              : 0,
+                "encoder_ppr"           : 1024
             },
 
             "wheel_3": {
@@ -35,7 +37,8 @@
                 "radius"                : 0.05,
                 "wheel_orientation"     : 0,
                 "roller_orientation"    : 0,
-                "rev_axis"              : 0
+                "rev_axis"              : 0,
+                "encoder_ppr"           : 1024
             },
 
             "wheel_4": {
@@ -44,53 +47,45 @@
                 "radius"                : 0.05,
                 "wheel_orientation"     : 0,
                 "roller_orientation"    : 0,
-                "rev_axis"              : 0
+                "rev_axis"              : 0,
+                "encoder_ppr"           : 1024
             }
+        },
+
+        "kinematics": {
+            "solver_precision"          : 1e-4,
+            "solver_max_trial"          : 10
+        },
+
+        "path_generator": {
+            "min_path_radius"           : 0.5,
+            "side_slippable"            : true,
+            "docking_back_offset"       : 0.5
+        },
+
+        "arduino": {
+            "id"                        : "55330343434351017072",
+            "baudrate"                  : 115200
         }
     },
 
-    "lightings": {
-        "front_light"           : { "pin": 0,   "dev_id": 0 },
-        "rear_light"            : { "pin": 0,   "dev_id": 0 },
-        "left_indicator"        : { "pin": 0,   "dev_id": 0 },
-        "right_indicator"       : { "pin": 0,   "dev_id": 0 },
-        "indicator_blink_interval"  : 0.35
-    },
+    "torch": {
+        "front_light"                   : { "pin": 0,   "dev_id": 0 },
+        "rear_light"                    : { "pin": 0,   "dev_id": 0 },
+        "left_indicator"                : { "pin": 0,   "dev_id": 0 },
+        "right_indicator"               : { "pin": 0,   "dev_id": 0 },
+        "indicator_blink_interval"      : 0.35,
 
-    "kinematics": {
-        "solver_precision": 1e-4,
-        "solver_max_trial": 10
-    },
-
-    "path_generator": {
-        "min_path_radius": 0.5,
-        "side_slippable": true,
-        "docking_back_offset": 0.5
-    },
-
-    "RPi-GPIO": {
-        "operating_mode"        : "BCM",
-        "pin_mode": {
-            "1"     : "OUTPUT",
-            "2"     : "INPUT",
-            "3"     : "OUTPUT"
+        "arduino": {
+            "serial_number"             : "75735303831351106241",
+            "baudrate"                  : 9600
         }
     },
 
-    "serial": {
-        "driver": {
-            "serial_number": "55330343434351017072",
-            "baudrate": 9600
-        },
-
-        "torch": {
-            "serial_number": "75735303831351106241",
-            "baudrate": 9600
-        },
-
-        "watchdog": {
-            "serial_number": "7543033343735130F041",
-            "baudrate": 9600
+    "watchdog": {
+        "arduino": {
+            "serial_number"             : "7543033343735130F041",
+            "baudrate"                  : 9600
         }
     }
 }

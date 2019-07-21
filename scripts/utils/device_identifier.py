@@ -18,6 +18,6 @@ def identify_arduinos(keyword):
     for dev in device_list:
         dev_id = os.popen("udevadm info --query=all --name=" + dev + " | grep ID_SERIAL_SHORT").read()
         dev_id = dev_id[dev_id.index("=")+1:].strip()
-        device_dict["/dev/" + dev] = dev_id
+        device_dict[dev_id] = "/dev/" + dev
     
     return device_dict

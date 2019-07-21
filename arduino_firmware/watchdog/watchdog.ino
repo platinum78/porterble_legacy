@@ -27,9 +27,9 @@ SonarRange sonar_07(42, 43);
 void bindBytes(char *start_pos, int val)
 {
     char *pos = start_pos;
-    *pos = val & 0x00FF;
+    *pos = char(val & 0x00FF);
     ++pos;
-    *pos = val & 0xFF00;
+    *pos = char((val & 0xFF00) >> 1);
 }
 
 void measureCallback()
@@ -57,10 +57,10 @@ void measureCallback()
 //    bindBytes(outboundSerialBuffer +  8, sonar_05.GetMeasurement());
 //    bindBytes(outboundSerialBuffer + 10, sonar_06.GetMeasurement());
 //    bindBytes(outboundSerialBuffer + 12, sonar_07.GetMeasurement());
-//    outboundSerialBuffer[14] = '\n';
+//    outboundSerialBuffer[14] = '\0';
 //    outboundSerialBuffer[15] = '\0';
-
-//    Serial.print(outboundSerialBuffer);
+//
+//    Serial.println(outboundSerialBuffer);
 }
 
 void setup()
@@ -74,7 +74,7 @@ void loop()
     if (serial.IsDataReady())
     {
         if (inboundSerialBuffer[0] == 'a')
-            for (int i = 0; i < 10; i++)
+            for (int i = 0; i < 100; i++)
                 measureCallback();
         serial.ConsumeData();
     }

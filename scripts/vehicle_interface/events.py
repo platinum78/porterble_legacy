@@ -32,21 +32,3 @@ class SwitchEvent(threading.Event):
     def sigterm(self):
         self.terminate = True
         self.set()
-
-
-class DeviceEvent(threading.Event):
-    def __init__(self):
-        super().__init__()
-        self.dev_id = 0
-        self.switch_state = False
-        self.terminate = False
-
-    def set_device(self, dev_id, swtich_state):
-        self.dev_id = dev_id
-        self.switch_state = swtich_state
-        self.terminate = False
-        self.set()
-    
-    def trigger_sigterm(self):
-        self.terminate = True
-        self.set()

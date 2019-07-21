@@ -11,8 +11,9 @@
 
 import threading
 import numpy as np
-from ..utils.logging import *
+from ...utils.logging import *
 from .geometry_datatypes import Pose2D
+
 
 def cubic_parametrize(b, c):
     mat = np.ones([2, 2])
@@ -27,6 +28,50 @@ def cubic_parametrize(b, c):
         return a / 3 * x**3 - a / 2 * (b + c) * x**2 + a * b * c * x + k
     
     return cubic_func
+
+
+class TripleMarkerPoseEstimator:
+    def __init__(self, marker2, marker3):
+        self.marker2 = marker2
+        self.marker3 = marker3
+
+        self.offset_x = 0
+        self.offset_y = 0
+        self.rotation = 0
+
+    def compute_pose(self, t1, t2, t3):
+        x2, y2 = self.marker2.x, self.marker2.y
+        x3, y3 = self.marker3.x, self.marker3.y
+        alpha2 = t2 - np.arctan2(y2, x2)
+        alpha3 = t3 - np.arctan2(y3, x3)
+        A2 = np.sqrt(x2**2 + y2**2) / np.sin(t2 - t1)
+        A3 = np.sqrt(x3**2 + y3**2) / np.sin(t3 - t1)
+        tan_theta = (A3 * np.sin(alpha3) - A2 * np.sin(alpha2)) / (A3 * np.cos(alpha3) - A2 * np.cos(alpha2))
+        theta = np.arctan(tan_theta)
+        omega = -theta
+        if omega < 0:
+            omega += np.pi
+
+        d1 = (y3 * np.cos(omega + t3) - x3 * np.sin(omega + t3)) / np.sin(t3 - t1)
+        d1_ = (y2 * np.cos(omega + t2) - x2 * np.sin(omega + t2)) / np.sin(t2 - t1)
+        print("Comparison: ", d1, d1_)
+        d2 = (y2 * np.cos(omega + t1) - x2 * np.sin(omega + t1)) / np.sin(t2 - t1)
+        d3 = (y3 * np.cos(omega + t1) - x3 * np.sin(omega + t1)) / np.sin(t3 - t1)
+
+        mat_A = np.array([[ 2 * x2, 2 * y2 ],
+                          [ 2 * x3, 2 * y3 ]])
+        vec_b = np.array([[ d1**2 - d2**2 + x2**2 + y2**2 ],
+                          [ d1**2 - d3**2 + x3**2 + y3**2 ]])
+        vec_x = np.matmul(np.linalg.inv(mat_A), vec_b)
+        x = vec_x[0, 0]
+        y = vec_x[1, 0]
+        
+        self.offset_x = x
+        self.offset_y = y
+        self.rotation = omega
+    
+    def __str__(self):
+        return "Offset: [%.6f, %.6f], Rotation: %.6f" % (self.offset_x, self.offset_y, self.rotation * 180 / np.pi)
 
 class PathGenerator:
     def __init__(self, config_dict):
