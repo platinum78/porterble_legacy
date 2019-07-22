@@ -13,6 +13,7 @@ import threading
 import numpy as np
 from ...utils.logging import *
 from .geometry_datatypes import Pose2D
+from .aruco_detector import *
 
 
 def cubic_parametrize(b, c):
@@ -31,15 +32,20 @@ def cubic_parametrize(b, c):
 
 
 class TripleMarkerPoseEstimator:
-    def __init__(self, marker2, marker3):
+    def __init__(self, marker2, marker3, docking_pose):
+        # Get marker and docking positions.
         self.marker2 = marker2
         self.marker3 = marker3
+        self.docking_pose = docking_pose
 
-        self.offset_x = 0
-        self.offset_y = 0
-        self.rotation = 0
+        # Origin of camera.
+        self.offset = Pose2D(0, 0, 0)
 
-    def compute_pose(self, t1, t2, t3):
+        # Initialize Aruco marker detector.
+        self.detector = ArucoMarkerDetector(1, 2, 3)
+
+    def compute_pose(self):
+        t1, _, t2, _, t3, _ = self.detector.detect_markers()
         x2, y2 = self.marker2.x, self.marker2.y
         x3, y3 = self.marker3.x, self.marker3.y
         alpha2 = t2 - np.arctan2(y2, x2)
@@ -54,24 +60,32 @@ class TripleMarkerPoseEstimator:
 
         d1 = (y3 * np.cos(omega + t3) - x3 * np.sin(omega + t3)) / np.sin(t3 - t1)
         d1_ = (y2 * np.cos(omega + t2) - x2 * np.sin(omega + t2)) / np.sin(t2 - t1)
-        print("Comparison: ", d1, d1_)
         d2 = (y2 * np.cos(omega + t1) - x2 * np.sin(omega + t1)) / np.sin(t2 - t1)
         d3 = (y3 * np.cos(omega + t1) - x3 * np.sin(omega + t1)) / np.sin(t3 - t1)
 
-        mat_A = np.array([[ 2 * x2, 2 * y2 ],
-                          [ 2 * x3, 2 * y3 ]])
-        vec_b = np.array([[ d1**2 - d2**2 + x2**2 + y2**2 ],
-                          [ d1**2 - d3**2 + x3**2 + y3**2 ]])
-        vec_x = np.matmul(np.linalg.inv(mat_A), vec_b)
-        x = vec_x[0, 0]
-        y = vec_x[1, 0]
+        # Verify numerical stability by comparing d1 and d1_.
+        if abs(d1 - d1_) > 0.0001:
+            print_err("Solution is numerically unstable. This iteration will be neglected.")
+            raise RuntimeError("Solution is numerically unstable. This iteration will be neglected.")
+        else:
+            mat_A = np.array([[ 2 * x2, 2 * y2 ],
+                            [ 2 * x3, 2 * y3 ]])
+            vec_b = np.array([[ d1**2 - d2**2 + x2**2 + y2**2 ],
+                            [ d1**2 - d3**2 + x3**2 + y3**2 ]])
+            vec_x = np.matmul(np.linalg.inv(mat_A), vec_b)
+            x = vec_x[0, 0]
+            y = vec_x[1, 0]
+            
+            self.offset.x = x
+            self.offset.y = y
+            self.offset.t = omega
         
-        self.offset_x = x
-        self.offset_y = y
-        self.rotation = omega
+    def compute_docking_error(self, t1, t2, t3):
+        self.compute_pose(t1, t2, t3)
+        return self.docking_pose - self.offset
     
     def __str__(self):
-        return "Offset: [%.6f, %.6f], Rotation: %.6f" % (self.offset_x, self.offset_y, self.rotation * 180 / np.pi)
+        return "Offset: [%.6f, %.6f], Rotation: %.6f" % (self.offset.x, self.offset.y, self.offset.t * 180 / np.pi)
 
 class PathGenerator:
     def __init__(self, config_dict):

@@ -40,4 +40,4 @@ class Pose2D:
         return self.x ** 2 + self.y ** 2
     
     def __str__(self):
-        return "Pose2D([" + self.x + ", " + self.y + ", " + self.z + "])"
+        return "Pose2D([%.6f, %.6f, %.6f])" % (self.x, self.y, self.t)
